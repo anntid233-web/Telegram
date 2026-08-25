@@ -29,4 +29,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Telegram-Mod-APK
-          path: TMessagesProj/build/outputs/apk/**/*.apk
+          path: '**/*.apk'
