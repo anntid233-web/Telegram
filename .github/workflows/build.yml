@@ -8,6 +8,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Add SWAP memory (Anti-Crash)
+        run: |
+          sudo fallocate -l 8G /swapfile
+          sudo chmod 600 /swapfile
+          sudo mkswap /swapfile
+          sudo swapon /swapfile
+
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
@@ -23,7 +30,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build APK
-        run: ./gradlew assembleAfatDebug -Dorg.gradle.jvmargs="-Xmx4g -XX:+UseG1GC" --no-daemon
+        run: ./gradlew assembleAfatDebug -Dorg.gradle.jvmargs="-Xmx5g -XX:+UseG1GC" --no-daemon
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
