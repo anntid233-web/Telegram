@@ -29,6 +29,9 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x gradlew
 
+      - name: Patch AeroGram Menu
+        run: python patcher.py
+
       - name: Build APK
         run: ./gradlew assembleAfatDebug -Dorg.gradle.jvmargs="-Xmx5g -XX:+UseG1GC" --no-daemon
 
