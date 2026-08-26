@@ -10,10 +10,10 @@ jobs:
     steps:
       - name: Add SWAP memory (Anti-Crash)
         run: |
-          sudo fallocate -l 8G /swapfile
-          sudo chmod 600 /swapfile
-          sudo mkswap /swapfile
-          sudo swapon /swapfile
+          sudo fallocate -l 8G /mnt/swapfile
+          sudo chmod 600 /mnt/swapfile
+          sudo mkswap /mnt/swapfile
+          sudo swapon /mnt/swapfile
 
       - name: Checkout repository
         uses: actions/checkout@v4
