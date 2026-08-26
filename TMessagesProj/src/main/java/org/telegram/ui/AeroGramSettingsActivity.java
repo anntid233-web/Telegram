@@ -9,11 +9,13 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.BuildVars;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.ActionBarMenu;
 import org.telegram.ui.ActionBar.BaseFragment;
+import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.ActionBar.ThemeDescription;
 import org.telegram.ui.Cells.HeaderCell;
 import org.telegram.ui.Cells.ShadowSectionCell;
@@ -26,7 +28,7 @@ import java.util.ArrayList;
 
 /**
  * Главный экран раздела "AeroGram" в настройках.
- * Аналог AyuGramSettingsActivity: 4 категории + блок ссылок.
+ * 4 категории + блок ссылок.
  */
 public class AeroGramSettingsActivity extends BaseFragment {
 
@@ -111,8 +113,6 @@ public class AeroGramSettingsActivity extends BaseFragment {
             } else if (position == customizationRow) {
                 presentFragment(new CustomizationSettingsActivity());
             }
-            // channelRow / chatRow / translationRow / docsRow —
-            // можно открыть ссылку через Browser.openUrl(getParentActivity(), "https://t.me/aerogram") и т.п.
         });
 
         return fragmentView;
@@ -177,14 +177,13 @@ public class AeroGramSettingsActivity extends BaseFragment {
                 case 1: {
                     TextCell textCell = (TextCell) holder.itemView;
                     if (position == ghostModeRow) {
-                        // используем стандартную иконку-заглушку Telegram
-                        textCell.setTextAndIcon("Режим Призрака", R.drawable.msg_online, true);
+                        textCell.setTextAndIcon("Режим Призрака", R.drawable.msg_settings, true);
                     } else if (position == spyModeRow) {
-                        textCell.setTextAndIcon("Шпион", R.drawable.msg_views, true);
+                        textCell.setTextAndIcon("Шпион", R.drawable.msg_settings, true);
                     } else if (position == filtersRow) {
-                        textCell.setTextAndIcon("Фильтры", R.drawable.msg_filter, true);
+                        textCell.setTextAndIcon("Фильтры", R.drawable.msg_settings, true);
                     } else if (position == customizationRow) {
-                        textCell.setTextAndIcon("Кастомизация", R.drawable.msg_palette, false);
+                        textCell.setTextAndIcon("Кастомизация", R.drawable.msg_settings, false);
                     } else if (position == channelRow) {
                         textCell.setTextAndValue("Канал", "@aerogram", true);
                     } else if (position == chatRow) {
@@ -197,7 +196,6 @@ public class AeroGramSettingsActivity extends BaseFragment {
                     break;
                 }
                 case 2: {
-                    // ShadowSectionCell — просто разделитель, ничего биндить не нужно
                     break;
                 }
                 case 3: {
