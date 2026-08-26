@@ -112,7 +112,8 @@ public class CustomizationSettingsActivity extends BaseFragment {
             } else if (position == deletedLabelRow) {
                 // TODO: диалог выбора метки удалёнок (Убрать значок / Корзинка / Крестик / Глазик)
             } else if (position == navigationRow) {
-                presentFragment(new NavigationSettingsActivity());
+                // TODO: NavigationSettingsActivity ещё не реализован в этом форке
+                // presentFragment(new NavigationSettingsActivity());
             } else if (position == pillStackRow) {
                 // TODO: PillStackSettingsActivity ещё не реализован в этом форке
                 // presentFragment(new PillStackSettingsActivity());
