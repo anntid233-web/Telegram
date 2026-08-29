@@ -14,6 +14,8 @@ import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.ActionBar;
+import org.telegram.ui.ActionBar.ActionBarMenu;
+import org.telegram.ui.ActionBar.ActionBarMenuItem;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
@@ -26,38 +28,28 @@ import org.telegram.ui.Components.RecyclerListView;
 
 import java.util.ArrayList;
 
-public class CustomizationSettingsActivity extends BaseFragment {
+public class MessageFiltersActivity extends BaseFragment {
 
     private RecyclerListView listView;
     private ListAdapter listAdapter;
     private SharedPreferences prefs;
 
-    private static final String[] DELETED_LABEL_OPTIONS = {"Убрать значок", "Корзинка", "Крестик", "Глазик"};
-
     private int headerRow;
-    private int translucentDeletedRow;
-    private int deletedLabelRow;
-    private int navigationRow;
-    private int pillStackRow;
-    private int usefulHeaderRow;
-    private int backgroundWorkRow;
-    private int localPremiumRow;
-    private int disableAdsRow;
-    private int ghostStatusInListRow;
+    private int enableFiltersRow;
+    private int enableCommonInChatsRow;
+    private int hideFromUsersRow;
+    private int commonFiltersRow;
+    private int shadowBanRow;
     private int rowCount;
 
     private void updateRowsId() {
         rowCount = 0;
         headerRow = rowCount++;
-        translucentDeletedRow = rowCount++;
-        deletedLabelRow = rowCount++;
-        navigationRow = rowCount++;
-        pillStackRow = rowCount++;
-        usefulHeaderRow = rowCount++;
-        backgroundWorkRow = rowCount++;
-        localPremiumRow = rowCount++;
-        disableAdsRow = rowCount++;
-        ghostStatusInListRow = rowCount++;
+        enableFiltersRow = rowCount++;
+        enableCommonInChatsRow = rowCount++;
+        hideFromUsersRow = rowCount++;
+        commonFiltersRow = rowCount++;
+        shadowBanRow = rowCount++;
     }
 
     @Override
@@ -79,15 +71,27 @@ public class CustomizationSettingsActivity extends BaseFragment {
     public View createView(Context context) {
         actionBar.setBackButtonImage(R.drawable.ic_ab_back);
         actionBar.setAllowOverlayTitle(true);
-        actionBar.setTitle("Кастомизация");
+        actionBar.setTitle("Фильтры сообщений");
         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
             public void onItemClick(int id) {
                 if (id == -1) {
                     finishFragment();
+                } else if (id == 10) {
+                    openSelectChatForFilter();
+                } else if (id == 11) {
+                    importFilters();
+                } else if (id == 12) {
+                    showClearFiltersConfirm();
                 }
             }
         });
+
+        final ActionBarMenu menu = actionBar.createMenu();
+        ActionBarMenuItem otherItem = menu.addItem(0, R.drawable.ic_ab_other);
+        otherItem.addSubItem(10, R.drawable.msg_contacts, "Выбрать чат");
+        otherItem.addSubItem(11, R.drawable.msg_settings, "Импорт");
+        otherItem.addSubItem(12, R.drawable.msg_delete, "Очистить");
 
         listAdapter = new ListAdapter(context);
         fragmentView = new FrameLayout(context);
@@ -100,42 +104,58 @@ public class CustomizationSettingsActivity extends BaseFragment {
         frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
 
         listView.setOnItemClickListener((view, position) -> {
-            if (position == translucentDeletedRow) {
-                togglePref("cust_translucent_deleted");
+            if (position == enableFiltersRow) {
+                togglePref("filters_enabled");
                 listAdapter.notifyItemChanged(position);
-            } else if (position == deletedLabelRow) {
-                showDeletedLabelDialog();
-            } else if (position == backgroundWorkRow) {
-                togglePref("cust_background_work");
+            } else if (position == enableCommonInChatsRow) {
+                togglePref("filters_common_in_chats");
                 listAdapter.notifyItemChanged(position);
-            } else if (position == localPremiumRow) {
-                togglePref("cust_local_premium");
+            } else if (position == hideFromUsersRow) {
+                togglePref("filters_hide_from_users");
                 listAdapter.notifyItemChanged(position);
-            } else if (position == disableAdsRow) {
-                togglePref("cust_disable_ads");
-                listAdapter.notifyItemChanged(position);
-            } else if (position == ghostStatusInListRow) {
-                togglePref("cust_ghost_status_in_list");
-                listAdapter.notifyItemChanged(position);
+            } else if (position == commonFiltersRow) {
+                openFilterList("Общие фильтры");
+            } else if (position == shadowBanRow) {
+                openFilterList("Теневой бан");
             }
         });
 
         return fragmentView;
     }
 
-    private int deletedLabelOption() {
-        return prefs.getInt("cust_deleted_label_option", 1);
+    private void openSelectChatForFilter() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
+        builder.setTitle("Выбрать чат");
+        builder.setMessage("Выберите чат, для которого будут применяться персональные фильтры.");
+        builder.setPositiveButton(LocaleController.getString(R.string.OK), null);
+        showDialog(builder.create());
     }
 
-    private void showDeletedLabelDialog() {
+    private void importFilters() {
         AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
-        builder.setTitle("Метка удалёнок");
-        int selected = deletedLabelOption();
-        builder.setSingleChoiceItems(DELETED_LABEL_OPTIONS, selected, (dialog, which) -> {
-            prefs.edit().putInt("cust_deleted_label_option", which).apply();
-            listAdapter.notifyItemChanged(deletedLabelRow);
-            dialog.dismiss();
+        builder.setTitle("Импорт");
+        builder.setMessage("Выберите файл со списком фильтров для импорта.");
+        builder.setPositiveButton(LocaleController.getString(R.string.OK), null);
+        showDialog(builder.create());
+    }
+
+    private void showClearFiltersConfirm() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
+        builder.setTitle("Очистить");
+        builder.setMessage("Удалить все фильтры сообщений? Это действие необратимо.");
+        builder.setPositiveButton("Очистить", (dialog, which) -> {
+            prefs.edit().remove("filters_enabled").remove("filters_common_in_chats").apply();
+            listAdapter.notifyDataSetChanged();
         });
+        builder.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
+        showDialog(builder.create());
+    }
+
+    private void openFilterList(String title) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
+        builder.setTitle(title);
+        builder.setMessage("Список фильтров пока пуст.");
+        builder.setPositiveButton(LocaleController.getString(R.string.OK), null);
         showDialog(builder.create());
     }
 
@@ -150,7 +170,7 @@ public class CustomizationSettingsActivity extends BaseFragment {
         @Override
         public boolean isEnabled(RecyclerView.ViewHolder holder) {
             int position = holder.getAdapterPosition();
-            return position != headerRow && position != usefulHeaderRow;
+            return position != headerRow;
         }
 
         @Override
@@ -180,37 +200,26 @@ public class CustomizationSettingsActivity extends BaseFragment {
         public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
             switch (holder.getItemViewType()) {
                 case 0: {
-                    HeaderCell cell = (HeaderCell) holder.itemView;
-                    if (position == headerRow) {
-                        cell.setText("Кастомизация");
-                    } else if (position == usefulHeaderRow) {
-                        cell.setText("Полезные функции");
-                    }
+                    ((HeaderCell) holder.itemView).setText("Основные");
                     break;
                 }
                 case 1: {
                     TextCheckCell cell = (TextCheckCell) holder.itemView;
-                    if (position == translucentDeletedRow) {
-                        cell.setTextAndCheck("Полупрозрачные удалёнки", pref("cust_translucent_deleted", true), true);
-                    } else if (position == backgroundWorkRow) {
-                        cell.setTextAndCheck("Работать в фоне", pref("cust_background_work", true), true);
-                    } else if (position == localPremiumRow) {
-                        cell.setTextAndCheck("Локальный Telegram Premium", pref("cust_local_premium", false), true);
-                    } else if (position == disableAdsRow) {
-                        cell.setTextAndCheck("Отключить рекламу", pref("cust_disable_ads", true), true);
-                    } else if (position == ghostStatusInListRow) {
-                        cell.setTextAndCheck("Статус призрака в списке диалогов", pref("cust_ghost_status_in_list", false), false);
+                    if (position == enableFiltersRow) {
+                        cell.setTextAndCheck("Включить фильтры", pref("filters_enabled", false), true);
+                    } else if (position == enableCommonInChatsRow) {
+                        cell.setTextAndCheck("Включить общие фильтры в чатах", pref("filters_common_in_chats", false), true);
+                    } else if (position == hideFromUsersRow) {
+                        cell.setTextAndCheck("Скрывать от пользователей в теневом бане", pref("filters_hide_from_users", false), false);
                     }
                     break;
                 }
                 case 2: {
                     TextCell cell = (TextCell) holder.itemView;
-                    if (position == deletedLabelRow) {
-                        cell.setTextAndValue("Метка удалёнок", DELETED_LABEL_OPTIONS[deletedLabelOption()], true);
-                    } else if (position == navigationRow) {
-                        cell.setTextAndIcon("Навигация в приложении", R.drawable.msg_settings, true);
-                    } else if (position == pillStackRow) {
-                        cell.setTextAndIcon("Pill Stack", R.drawable.msg_settings, false);
+                    if (position == commonFiltersRow) {
+                        cell.setTextAndValue("Общие фильтры", "0 фильтров", true);
+                    } else if (position == shadowBanRow) {
+                        cell.setTextAndValue("Теневой бан", "0 фильтров", false);
                     }
                     break;
                 }
@@ -219,11 +228,10 @@ public class CustomizationSettingsActivity extends BaseFragment {
 
         @Override
         public int getItemViewType(int position) {
-            if (position == headerRow || position == usefulHeaderRow) {
+            if (position == headerRow) {
                 return 0;
-            } else if (position == translucentDeletedRow || position == backgroundWorkRow
-                    || position == localPremiumRow || position == disableAdsRow
-                    || position == ghostStatusInListRow) {
+            } else if (position == enableFiltersRow || position == enableCommonInChatsRow
+                    || position == hideFromUsersRow) {
                 return 1;
             } else {
                 return 2;
